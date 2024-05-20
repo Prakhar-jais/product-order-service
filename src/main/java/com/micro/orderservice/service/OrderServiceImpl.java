@@ -6,14 +6,17 @@ import javax.management.RuntimeErrorException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.micro.orderservice.entity.Order;
 import com.micro.orderservice.external.client.PaymentService;
 import com.micro.orderservice.external.client.ProductService;
 import com.micro.orderservice.model.OrderRequest;
 import com.micro.orderservice.model.OrderResponse;
+import com.micro.orderservice.model.OrderResponse.ProductDetails;
 import com.micro.orderservice.repository.OrderRepository;
 import com.micro.orderservice.external.request.PaymentRequest;
+import com.micro.orderservice.external.response.ProductResponse;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -31,6 +34,9 @@ public class OrderServiceImpl implements OrderService{
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private RestTemplate restTemplate ;
+
     @Override
     public OrderResponse getOrderDetails(long orderId) {
         // 
@@ -38,11 +44,23 @@ public class OrderServiceImpl implements OrderService{
 
         Order order = orderRepository.findById(orderId).orElseThrow(()-> new RuntimeException("order not found exception"));
 
+
+        //
+
+        log.info("Invoking product service to fetch the product for id :{}",order.getProductId());
+        ProductResponse productResponse = restTemplate.getForObject("http://PRODUCT_SERVICE/product/"+ order.getProductId(),ProductResponse.class);
+
+        OrderResponse.ProductDetails productDetails = OrderResponse.ProductDetails.builder()
+        .productName(productResponse.getProductName())
+        .productId(productResponse.getProductId())
+        .build();
+
         OrderResponse orderResponse = OrderResponse.builder()
-        .oderid(order.getId())
+        .orderid(order.getId())
         .orderStatus(order.getOrderStatus())
         .amount(order.getAmount())
         .orderDate(order.getOrderDate())
+        .productDetails(productDetails)
         .build();
         return orderResponse;
     }

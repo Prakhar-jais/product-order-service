@@ -15,8 +15,23 @@ import lombok.NoArgsConstructor;
 
 public class OrderResponse {
     
-    private long oderid;
+    private long orderid;
     private Instant  orderDate;
     private String orderStatus;
     private long amount;
+    private ProductDetails productDetails;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+
+    public static class ProductDetails {
+        
+        private long productId ;
+        private String productName;
+        private long price;
+        private long quantity;
+    }
+
 }
