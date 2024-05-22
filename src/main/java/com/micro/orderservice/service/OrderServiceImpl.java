@@ -48,11 +48,13 @@ public class OrderServiceImpl implements OrderService{
         //
 
         log.info("Invoking product service to fetch the product for id :{}",order.getProductId());
-        ProductResponse productResponse = restTemplate.getForObject("http://PRODUCT_SERVICE/product/"+ order.getProductId(),ProductResponse.class);
+        ProductResponse productResponse = restTemplate.getForObject("http://PRODUCT-SERVICE/product/"+ order.getProductId(),ProductResponse.class);
 
         OrderResponse.ProductDetails productDetails = OrderResponse.ProductDetails.builder()
         .productName(productResponse.getProductName())
         .productId(productResponse.getProductId())
+        .quantity(productResponse.getQuantity())
+        .price(productResponse.getPrice())
         .build();
 
         OrderResponse orderResponse = OrderResponse.builder()
