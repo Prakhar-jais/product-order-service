@@ -13,9 +13,9 @@ import com.micro.orderservice.external.client.PaymentService;
 import com.micro.orderservice.external.client.ProductService;
 import com.micro.orderservice.model.OrderRequest;
 import com.micro.orderservice.model.OrderResponse;
-import com.micro.orderservice.model.OrderResponse.ProductDetails;
 import com.micro.orderservice.repository.OrderRepository;
 import com.micro.orderservice.external.request.PaymentRequest;
+import com.micro.orderservice.external.response.PaymentResponse;
 import com.micro.orderservice.external.response.ProductResponse;
 
 import lombok.extern.log4j.Log4j2;
@@ -50,6 +50,18 @@ public class OrderServiceImpl implements OrderService{
         log.info("Invoking product service to fetch the product for id :{}",order.getProductId());
         ProductResponse productResponse = restTemplate.getForObject("http://PRODUCT-SERVICE/product/"+ order.getProductId(),ProductResponse.class);
 
+        log.info("Getting payment information for the payment service || order id se payment ki transaction details ko call krna hai ");
+
+        PaymentResponse paymentResponse = restTemplate.getForObject("http://PAYMENT-SERVICE/payment/order/"+ order.getId(), PaymentResponse.class);
+
+        OrderResponse.PaymentDetails paymentDetails = OrderResponse.PaymentDetails.builder()
+        .paymentId(paymentResponse.getPaymentId())
+        .paymentDate(paymentResponse.getPaymentDate())
+        .amount(paymentResponse.getAmount())
+        .paymentMode(paymentResponse.getPaymentMode())
+        .orderId(paymentResponse.getOrderId())
+        .build();
+
         OrderResponse.ProductDetails productDetails = OrderResponse.ProductDetails.builder()
         .productName(productResponse.getProductName())
         .productId(productResponse.getProductId())
@@ -63,6 +75,7 @@ public class OrderServiceImpl implements OrderService{
         .amount(order.getAmount())
         .orderDate(order.getOrderDate())
         .productDetails(productDetails)
+        .paymentDetails(paymentDetails)
         .build();
         return orderResponse;
     }
